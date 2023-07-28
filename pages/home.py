@@ -1,7 +1,14 @@
 import re
 
+import dash
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html, Input, Output,State, callback, register_page
+import dash.dependencies as dd
+from dash_selectable import DashSelectable
+
+
+from deep_translator import GoogleTranslator
+translator = GoogleTranslator(source='de', target='en')
 
 from pages.chat_request import chat_completion_request, system_content
 
@@ -52,8 +59,17 @@ layout = html.Div(className='content', children=[
         ])
     ]),
     dbc.Button('Start a new conversation', id='start-conversation-button', n_clicks=0, disabled=True),
-    html.Div(id="conversation", children=[]),
-    dbc.Input(id="user-input", placeholder="Type something...", type="text", style={"display": "none"}),
+    html.Div(id='conversation-div', children=[
+        DashSelectable(id="conversation"),
+        html.Div(id="translation"),
+        dbc.Input(id="user-input", placeholder="Type something...", type="text", style={"display": "none"}),
+        
+        ],
+    ),
+
+    
+    
+    
     
 ])
 
@@ -85,6 +101,9 @@ def start_conversation_button_disabled(known_language, learn_language, conversat
 )
 def start_conversation(n_clicks, language_known, language_learn, conversation_setting):
 
+    # Use the global variable inside the callback
+    global MESSAGES
+
     if n_clicks:
 
         MESSAGES = []
@@ -104,8 +123,10 @@ def start_conversation(n_clicks, language_known, language_learn, conversation_se
         assistant_message = match.group(1).strip()
 
         conversation = [html.Div(className='message-ai', children=[assistant_message])]
-        conversation = conversation + [html.Div(className='message-user', children=["sdf asdf asfd asdfa"])]
+        conversation = conversation + [html.Div(className='message-user', children=['adsf we  sadfdfg wss'])]
         conversation = conversation + [html.Div(className='message-ai', children=['Natürlich! Wissen Sie, mit welcher Busgesellschaft Sie reisen möchten?'])]
+
+        print(MESSAGES)
 
         return conversation
         
@@ -129,12 +150,29 @@ def display_user_input(conversation):
     State("conversation", "children"),
 )
 def add_to_conversation_user(n_submit, input_value, conversation):
-    print("conversation", conversation, n_submit)
+
+    # Use the global variable inside the callback
+    global MESSAGES
+
     if n_submit is not None:
-        print(123)
         user_message = 'Hallo, ich möchte ein Ticket nach Berlin kaufen.'
         conversation = conversation + [html.Div(className='message-user', children=[user_message])]
         conversation = conversation + [html.Div(className='message-ai', children=['Natürlich! Wissen Sie, mit welcher Busgesellschaft Sie reisen möchten?'])]
-        print(conversation)
+        MESSAGES.append({'role': 'user', 'content': user_message})
+        print(MESSAGES)
         return conversation
 
+
+@callback(
+    Output('translation', 'children'),
+    Input('conversation', 'selectedValue'),
+)
+def find_clicked_word(text_to_translate):
+
+    translation = ""
+    if text_to_translate:
+        text_to_translate = re.sub(r'[^A-Za-z ]', '', text_to_translate)
+        translation = translator.translate(text_to_translate)
+        translation = f'Translation: {translation}'
+
+    return translation
