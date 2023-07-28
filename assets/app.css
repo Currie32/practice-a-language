@@ -1,0 +1,55 @@
+html {
+    margin: 0px;
+}
+body {
+    margin: auto;
+    max-width: 600px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    overflow-x: hidden;
+}
+.container {
+    padding: 0px;
+}
+#conversation {
+    display: 'block';
+    height: fit-content;
+}
+.languages {
+    display: flex;
+    min-width: 100%;
+}
+.language-menu {
+    min-width: 50%;
+    padding: 10px;
+}
+.message-ai {
+    border: 1px solid blue;
+    border-radius: 0px 4px 4px 4px;
+    clear: both;
+    float: left;
+    margin: 10px 0px;
+    width: 75%;
+    padding: 5px;
+}
+.message-user {
+    border: 1px solid green;
+    border-radius: 4px 0px 4px 4px;
+    clear: both;
+    float: right;
+    margin: 10px 0px;
+    width: 75%;
+    padding: 5px;
+}
+.setting {
+    min-width: 100%;
+}
+.setting-menu {
+    padding: 10px 10px 0px;
+}
+.setting-text {
+    padding: 10px;
+}
+#user-input {
+    margin: 30px 0px;
+    width: 100%;
+}

@@ -1,0 +1,28 @@
+#footer {
+    border-top: 1px solid #cccccc;
+    display: flex;
+    justify-content: center;
+    margin: 20px auto 0px;
+    width: 100%;
+}
+#footer a {
+    margin: 23px 15px 20px;
+}
+#footer p {
+    margin: 25px 15px 20px;
+}
+.footer-pipe {
+    color: #cccccc;
+}
+@media (max-width: 500px) {
+    #footer {
+        display: block;
+        padding: 20px;
+    }
+    #footer a, #footer p {
+        margin: 0px auto 5px;
+    }
+    .footer-pipe {
+        display: none;
+    }
+}
