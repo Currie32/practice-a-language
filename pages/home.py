@@ -5,6 +5,9 @@ import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html, Input, Output,State, callback, register_page
 import dash.dependencies as dd
 from dash_selectable import DashSelectable
+from gtts import gTTS
+from playsound import playsound
+
 
 
 from deep_translator import GoogleTranslator
@@ -63,14 +66,8 @@ layout = html.Div(className='content', children=[
         DashSelectable(id="conversation"),
         html.Div(id="translation"),
         dbc.Input(id="user-input", placeholder="Type something...", type="text", style={"display": "none"}),
-        
-        ],
-    ),
-
-    
-    
-    
-    
+        html.Div(id='dummy')
+    ]),
 ])
 
 
@@ -122,8 +119,14 @@ def start_conversation(n_clicks, language_known, language_learn, conversation_se
         match = re.search(r'German:\s*(.*?)\n', content)
         assistant_message = match.group(1).strip()
 
-        conversation = [html.Div(className='message-ai', children=[assistant_message])]
-        conversation = conversation + [html.Div(className='message-user', children=['adsf we  sadfdfg wss'])]
+        conversation = [html.Div(children=[
+            html.Div(className='message-ai', id='message-1', children=[assistant_message]),
+            html.Button('play', id='button-message-1'),
+        ])]
+        conversation = conversation + [html.Div(children=[
+            html.Div(className='message-user', id='message-2', children=['Ja, bitte, eine Kaffee mit Milch.']),
+            html.Button('play2', id='button-message-2')
+        ])]
         conversation = conversation + [html.Div(className='message-ai', children=['Natürlich! Wissen Sie, mit welcher Busgesellschaft Sie reisen möchten?'])]
 
         print(MESSAGES)
@@ -176,3 +179,22 @@ def find_clicked_word(text_to_translate):
         translation = f'Translation: {translation}'
 
     return translation
+
+
+for i in range(2):
+    @callback(
+        Output('dummy', 'children', allow_duplicate=True),
+        Input(f'button-message-{i+1}', "n_clicks"),
+        State(f'message-{i+1}', 'children'),
+        prevent_initial_call='initial_duplicate',
+    )
+    def convert_text_to_speech(n_clicks, text_input):
+        if n_clicks:
+            text_input = text_input[0]
+            # Perform text-to-speech conversion using gTTS
+            tts = gTTS(text=text_input, lang='de')  # Replace 'en' with the desired language code
+            speech_file = 'output.mp3'
+            tts.save(speech_file)
+            playsound(speech_file)
+
+        return None
