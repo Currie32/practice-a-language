@@ -7,6 +7,14 @@ body {
     font-family: Georgia, 'Times New Roman', Times, serif;
     overflow-x: hidden;
 }
+#button-play-audio {
+    cursor: pointer;
+}
+.button-play-audio-wrapper {
+    clear: both;
+    font-size: 22px;
+    margin-left: 10px;
+}
 .container {
     padding: 0px;
 }
@@ -27,24 +35,33 @@ body {
     min-width: 50%;
     padding: 10px;
 }
+.message-ai-wrapper {
+    display: flex;
+    margin: 10px 0px;
+    width: 100%;
+    align-items: center;
+}
 .message-ai {
     border: 1px solid blue;
     border-radius: 0px 4px 4px 4px;
     clear: both;
     float: left;
-    margin: 10px 0px;
     max-width: 75%;
-    padding: 5px;
+    padding: 5px 10px;
     width: fit-content;
 }
 .message-user {
     border: 1px solid green;
     border-radius: 4px 0px 4px 4px;
     clear: both;
-    float: right;
+    width: fit-content;
+    padding: 5px 10px;
+}
+.message-user-wrapper {
+    display: flex;
+    justify-content: flex-end;
     margin: 10px 0px;
-    width: 75%;
-    padding: 5px;
+    width: 100%;
 }
 .setting {
     min-width: 100%;
@@ -54,6 +71,17 @@ body {
 }
 .setting-text {
     padding: 10px;
+}
+#setting-text::placeholder {
+    color: #aaa;
+}
+#toggle-play-audio-text {
+    color: #777;
+    font-style: italic;
+    margin-right: 10px;
+}
+#toggle-play-audio-wrapper {
+    display: flex;
 }
 #translation {
     clear: both;
