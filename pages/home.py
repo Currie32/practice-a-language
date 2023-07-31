@@ -19,63 +19,111 @@ register_page(__name__, path="")
 MESSAGES = []
 
 
-layout = html.Div(className='content', children=[
-    html.H1(
-        className='title',
-        children='Practice a Language'
-    ),
-    html.Div(className='languages', children=[
-        html.Div(className='language-menu', children=[
-            dcc.Dropdown(
-                ['English', 'French', 'German', 'Spanish'],
-                placeholder='I speak',
-                id='language-known',
-                clearable=False,
-            ),
-        ]),
-        html.Div(className='language-menu', children=[
-            dcc.Dropdown(
-                ['English', 'French', 'German', 'Spanish'],
-                placeholder='I want to learn',
-                id='language-learn',
-                clearable=False,
-            ),
-        ]),
+layout = html.Div(children=[
+    html.Div(id='header', children=[
+        html.H1(id='title', children='Practice a Language'),
     ]),
-    html.Div(className='setting', children=[
-        html.Div(className='setting-menu', children=[
-            dcc.Dropdown(
-                [
-                    'asking for directions',
-                    'buying a bus ticket',
-                    'ordering at a cafe',
-                    'ordering at a restaurant',
-                    'other',
-                ],
-                placeholder='Choose a setting',
-                id='conversation-setting',
-            ),
+    html.Div(id='content', children=[
+        html.Div(className='languages', children=[
+            html.Div(id='language-menu-known', children=[
+                dcc.Dropdown(
+                    ['English', 'French', 'German', 'Spanish'],
+                    placeholder='I speak',
+                    id='language-known',
+                    clearable=False,
+                ),
+            ]),
+            html.Div(id='language-menu-learn', children=[
+                dcc.Dropdown(
+                    ['English', 'French', 'German', 'Spanish'],
+                    placeholder='I want to learn',
+                    id='language-learn',
+                    clearable=False,
+                ),
+            ]),
         ]),
-        html.Div(className='setting-text', children=[
-            dbc.Input(id="setting-text", placeholder="Type a custom setting for a conversation", type="text"),
-        ])
-    ]),
-    html.P(id='toggle-play-audio-wrapper', children=[
-        html.P('Play audio of new message', id='toggle-play-audio-text'),
-        daq.ToggleSwitch(id='toggle-play-audio', value=True, color='#0d6efd'),
-    ]),
-    dbc.Button('Start a new conversation', id='start-conversation-button', n_clicks=0, disabled=True),
-    html.Div(id='conversation-div', children=[
-        DashSelectable(id="conversation"),
-        html.Div(id="translation"),
-        dbc.Input(id="user-input", placeholder="Type something...", type="text", style={"display": "none"}),
-        html.Div(id='dummy')
+        html.Div(className='setting', children=[
+            html.Div(className='setting-menu', children=[
+                dcc.Dropdown(
+                    [
+                        'asking for directions',
+                        'buying a bus ticket',
+                        'ordering at a cafe',
+                        'ordering at a restaurant',
+                        'other',
+                    ],
+                    placeholder='Choose a setting',
+                    id='conversation-setting',
+                ),
+            ]),
+            html.Div(className='setting-text', children=[
+                dbc.Input(id="setting-text", placeholder="Type a custom setting for a conversation", type="text"),
+            ])
+        ]),
+        html.P(id='toggle-play-audio-wrapper', children=[
+            html.P('Play audio of new message', id='toggle-play-audio-text'),
+            daq.ToggleSwitch(id='toggle-play-audio', value=True, color='rgb(10, 108, 255)'),
+        ]),
+        dbc.Button('Start a new conversation', id='button-start-conversation', n_clicks=0, disabled=True),
+        html.Div(id='conversation-div', children=[
+            html.I(className='bi bi-exclamation-circle', id='help-highlight-for-translation', style={'display': 'none'}),
+            dbc.Tooltip("Highlight text to see the translation.", target="help-highlight-for-translation"),
+            DashSelectable(id="conversation"),
+            html.Div(id="translation"),
+            html.I(className='bi bi-exclamation-circle', id='help-translate-language-known', style={'display': 'none'}),
+            dbc.Tooltip(id='tooltip-translate-language-known', target="help-translate-language-known"),
+            dbc.Input(id="user-input", type="text", style={"display": "none"}),
+            html.Div(id='dummy')
+        ]),
     ]),
 ])
 
 
 @callback(
-    Output('start-conversation-button', 'disabled'),
+    Output('tooltip-translate-language-known', 'children'),
+    Input('language-known', 'value'),
+    Input('language-learn', 'value'),
+)
+def tooltip_translate_language_known_text(language_known, language_learn):
+
+    return f'If you type your response in {language_known}, it will automatically be translated to {language_learn}.'
+
+
+@callback(
+    Output('help-highlight-for-translation', 'style'),
+    Output('help-translate-language-known', 'style'),
+    Input('conversation', 'children'),
+)
+def show_conversation_help_icon(conversation):
+
+    if conversation:
+        return (
+            {'display': 'block'},
+            {
+                'margin': '30px 0px 0px',
+                'float': 'right',
+            }
+        )
+    
+    return {'display': 'none'}, {'display': 'none'}
+
+
+@callback(
+    Output('user-input', 'placeholder'),
+    Input('language-known', 'value'),
+    Input('language-learn', 'value'),
+)
+def user_input_placeholder(language_known, language_learn):
+
+    if language_known and language_learn:
+        return f'Type your response in {language_learn} or {language_known}'
+    else:
+        return 'Type your response'
+    
+
+
+@callback(
+    Output('button-start-conversation', 'disabled'),
     Input('language-known', 'value'),
     Input('language-learn', 'value'),
     Input('conversation-setting', 'value'),
@@ -113,7 +161,7 @@ def conversation_settings(setting_choice, custom_setting_text):
 
 @callback(
     Output('conversation', 'children', allow_duplicate=True),
-    [Input('start-conversation-button', 'n_clicks')],
+    [Input('button-start-conversation', 'n_clicks')],
     [
         State('language-known', 'value'),
         State('language-learn', 'value'),
