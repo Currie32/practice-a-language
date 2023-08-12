@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 
 import openai
@@ -8,12 +9,12 @@ openai.api_key = os.environ.get('OPENAI_KEY')
 
 
 @retry(wait=wait_random_exponential(multiplier=1, max=40), stop=stop_after_attempt(3))
-def chat_completion_request(messages, functions=None, function_call=None, model="gpt-3.5-turbo-0613"):
+def chat_completion_request(messages, model="gpt-3.5-turbo-0613"):
     headers = {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + openai.api_key,
     }
-    json_data = {"model": model, "messages": messages}
+    json_data = {"model": model, "messages": messages, "temperature": 1.5}
     try:
         response = requests.post(
             "https://api.openai.com/v1/chat/completions",
@@ -27,9 +28,12 @@ def chat_completion_request(messages, functions=None, function_call=None, model=
         return e
 
 
-def system_content(language_known, language_learn, setting, point_in_conversation="Start"):
+def system_content(language_learn, setting, point_in_conversation="Start"):
+
+    content = f"{point_in_conversation} a conversation about {setting} in {language_learn}. \
+        Provide one statement, then wait for my response. \
+        Always finish your response with a question."
+
+    content = re.sub(r"\s+", " ", content)
     
-    return f"""You are a {language_learn} language teacher. {point_in_conversation} a role-playing exercise about {setting}. Provide one response, then wait for my response. Always finish your response with a question. Respond in the following format:
-    {language_known}: <response-in-{language_known}>
-    {language_learn}: <response-in-{language_learn}>
-    """
+    return content

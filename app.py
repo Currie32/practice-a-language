@@ -10,7 +10,7 @@ app = Dash(
     __name__,
     use_pages=True,
     pages_folder="pages",
-    external_stylesheets=[dbc.icons.BOOTSTRAP, dbc.themes.BOOTSTRAP]
+    external_stylesheets=[dbc.icons.BOOTSTRAP, dbc.themes.BOOTSTRAP],
 )
 app.config.suppress_callback_exceptions = True
 server = app.server
