@@ -27,7 +27,7 @@ body {
 #content {
     margin: auto;
     max-width: 600px;
-    min-height: 480px;
+    min-height: 470px;
     padding: 0px 20px;
 }
 #conversation {
@@ -37,6 +37,18 @@ body {
 }
 #conversation-id {
     height: 10px;
+    min-width: 100%;
+}
+.conversation-setting-custom-input {
+    padding: 10px 0px;
+}
+#conversation-setting-custom::placeholder {
+    color: #aaa;
+}
+.conversation-setting-menu {
+    padding: 10px 0px 0px;
+}
+.conversation-setting-wrapper {
     min-width: 100%;
 }
 #header {
@@ -101,18 +113,6 @@ body {
     justify-content: flex-end;
     margin: 15px 0px;
     width: 100%;
-}
-.setting {
-    min-width: 100%;
-}
-.setting-menu {
-    padding: 10px 0px 0px;
-}
-.setting-text {
-    padding: 10px 0px;
-}
-#setting-text::placeholder {
-    color: #aaa;
 }
 #toggle-play-audio-text {
     color: #aaa;

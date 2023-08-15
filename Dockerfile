@@ -8,7 +8,7 @@ WORKDIR /app
 EXPOSE 8080
 
 # Copy the required files
-COPY app.py app.yaml requirements.txt robots.txt sitemap.xml ./
+COPY app.py requirements.txt robots.txt sitemap.xml ./
 COPY assets assets
 COPY pages pages
 
