@@ -1,5 +1,3 @@
-import base64
-import os
 from typing import Dict, List, Tuple
 
 import dash_bootstrap_components as dbc
@@ -158,6 +156,7 @@ def start_conversation(
         MESSAGES_COUNT += 1
 
         # Create a list to store the conversation history
+
         conversation = [html.Div(className="message-ai-wrapper", children=[
             html.Div(className='message-ai', id='message-1', children=[message_assistant]),
             html.Div(
@@ -165,8 +164,11 @@ def start_conversation(
                 id='button-message-1',
                 className='button-play-audio-wrapper',
             ),
+            # For initial audio play
             html.Audio(id="audio-player-0", autoPlay=True),
-            html.Audio(id="audio-player-1", autoPlay=True),
+            # Need two audio elements to always provide playback after conversation has been created
+            html.Audio(id=f"audio-player-1-1", autoPlay=True),
+            html.Audio(id=f"audio-player-1-2", autoPlay=True),
         ])]
 
         return conversation, {'display': 'none'}
@@ -226,7 +228,7 @@ def continue_conversation(
         conversation = conversation + message_new
 
         message_assistant = get_assistant_message(MESSAGES)
-        # message_assistant = 'Natürlich! Wissen Sie, mit welcher Busgesellschaft Sie reisen möchten?'  # <- testing message
+        # message_assistant = 'Natürlich!'  # <- testing message
         MESSAGES.append({'role': 'assistant', 'content': message_assistant})
         MESSAGES_COUNT += 1
         message_new = format_new_message("ai", len(MESSAGES), message_assistant)
@@ -257,7 +259,9 @@ def format_new_message(who: str, messages_count: int, message: str) -> List[html
             id=f'button-message-{messages_count - 1}',
             className='button-play-audio-wrapper',
         ),
-        html.Audio(id=f"audio-player-{messages_count - 1}", autoPlay=True),
+        # Need two audio elements to always provide playback
+        html.Audio(id=f"audio-player-{messages_count - 1}-1", autoPlay=True),
+        html.Audio(id=f"audio-player-{messages_count - 1}-2", autoPlay=True),
     ])]
 
 
@@ -293,7 +297,8 @@ def play_newest_message(conversation: List, toggle_audio: bool, language_learn: 
 # Loop through the messages to determine which one should have its audio played
 for i in range(100):
     @callback(
-        Output(f'audio-player-{i+1}', 'src'),
+        Output(f'audio-player-{i+1}-1', 'src'),
+        Output(f'audio-player-{i+1}-2', 'src'),
         Input(f'button-message-{i+1}', "n_clicks"),
         State(f'conversation', 'children'),
         State("language-learn", "value"),
@@ -324,6 +329,11 @@ for i in range(100):
                 message_number_clicked = int(message_number_clicked)
                 message_clicked = conversation[message_number_clicked - 1]['props']['children'][0]['props']['children'][0]
                 language_learn_abbreviation = LANGUAGES_DICT[language_learn]
-                return get_audio_file(message_clicked, language_learn_abbreviation)
 
-        return ""
+                # Rotate between audio elements so that the audio is always played
+                if button_message_n_clicks % 2 == 0:
+                    return get_audio_file(message_clicked, language_learn_abbreviation), ""
+                else:
+                    return "", get_audio_file(message_clicked, language_learn_abbreviation)
+
+        return "", "",

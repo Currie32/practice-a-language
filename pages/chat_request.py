@@ -43,7 +43,8 @@ def system_content(language_learn, setting, point_in_conversation="Start"):
 
     content = f"{point_in_conversation} a conversation about {setting} in {language_learn}. \
         Provide one statement in {language_learn}, then wait for my response. \
-        Always finish your response with a question."
+        Always finish your response with a question. \
+        Example response: Bonjour, qu'est-ce que je peux vous servir aujourd'hui?"
 
     content = re.sub(r"\s+", " ", content)
     

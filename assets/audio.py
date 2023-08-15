@@ -29,6 +29,6 @@ def get_audio_file(text: str, language: str) -> str:
         audio_src = f"data:audio/mpeg;base64,{audio_base64}"
     
     # Delete the temporary audio file
-    os.remove(audio_path)
+    # os.remove(audio_path)
     
     return audio_src
