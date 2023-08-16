@@ -1,0 +1,37 @@
+#buy-me-a-coffee-logo {
+    max-width: 100px;
+}
+#email {
+    font-size: 14px;
+    text-align: center;
+}
+#footer {
+    border-top: 1px solid #cccccc;
+    display: flex;
+    justify-content: center;
+    margin: 20px auto 0px;
+    width: 100%;
+}
+#footer a {
+    margin: 23px 15px 10px;
+}
+#footer p {
+    margin: 25px 15px 10px;
+}
+.footer-pipe {
+    color: #cccccc;
+    margin-top: 25px;
+}
+@media (max-width: 800px) {
+    #footer {
+        display: block;
+        padding: 20px;
+    }
+    #footer a, #footer p {
+        display: block;
+        margin: 0px auto 5px;
+    }
+    .footer-pipe {
+        display: none;
+    }
+}
