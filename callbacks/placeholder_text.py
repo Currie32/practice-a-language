@@ -1,10 +1,10 @@
-from dash import callback, Input, Output
+from dash import Input, Output, callback
 
 
 @callback(
-    Output('user-response', 'placeholder'),
-    Input('language-known', 'value'),
-    Input('language-learn', 'value'),
+    Output("user-response", "placeholder"),
+    Input("language-known", "value"),
+    Input("language-learn", "value"),
 )
 def user_input_placeholder(language_known: str, language_learn: str) -> str:
     """
@@ -19,6 +19,6 @@ def user_input_placeholder(language_known: str, language_learn: str) -> str:
     """
 
     if language_known and language_learn:
-        return f'Type your response in {language_learn} or {language_known}'
+        return f"Type your response in {language_learn} or {language_known}"
     else:
-        return 'Type your response'
+        return "Type your response"

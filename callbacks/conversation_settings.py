@@ -1,14 +1,14 @@
 from typing import Tuple
 
-from dash import callback, callback_context, Input, Output, State
+from dash import Input, Output, State, callback, callback_context
 
 
 @callback(
-    Output('button-start-conversation', 'disabled'),
-    Input('language-known', 'value'),
-    Input('language-learn', 'value'),
-    Input('conversation-setting', 'value'),
-    State('conversation-setting-custom', 'value'),
+    Output("button-start-conversation", "disabled"),
+    Input("language-known", "value"),
+    Input("language-learn", "value"),
+    Input("conversation-setting", "value"),
+    State("conversation-setting-custom", "value"),
 )
 def start_conversation_button_disabled(
     language_known: str,
@@ -28,22 +28,21 @@ def start_conversation_button_disabled(
     Returns:
         True if the conversation button should be disabled, otherwise False.
     """
-    has_two_languages = ((language_known is not None) & (language_learn is not None))
-    has_different_languages = (language_known != language_learn)
+    has_two_languages = (language_known is not None) & (language_learn is not None)
+    has_different_languages = language_known != language_learn
 
     has_setting = (
-        ((conversation_setting == 'other') & (conversation_setting_custom is not None))
-        | (conversation_setting != 'other')
-    )
+        (conversation_setting == "other") & (conversation_setting_custom is not None)
+    ) | (conversation_setting != "other")
 
     return not (has_two_languages & has_different_languages & has_setting)
 
 
 @callback(
-    Output('conversation-setting', 'value'),
-    Output('conversation-setting-custom', 'value'),
-    Input('conversation-setting', 'value'),
-    Input('conversation-setting-custom', 'value'),
+    Output("conversation-setting", "value"),
+    Output("conversation-setting-custom", "value"),
+    Input("conversation-setting", "value"),
+    Input("conversation-setting-custom", "value"),
 )
 def update_conversation_setting_values(
     conversation_setting: str,
@@ -60,18 +59,18 @@ def update_conversation_setting_values(
     Returns:
         The updated values for conversation_setting and conversation_setting_custom.
     """
-    
+
     # Determine which input triggered the callback
-    triggered_input_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+    triggered_input_id = callback_context.triggered[0]["prop_id"].split(".")[0]
 
     # Reset conversation_setting_custom when conversation_setting changes to something other than 'other'
-    if triggered_input_id == 'conversation-setting':
-        if conversation_setting != 'other':
-            conversation_setting_custom = ''
+    if triggered_input_id == "conversation-setting":
+        if conversation_setting != "other":
+            conversation_setting_custom = ""
 
     # If a value is provided for conversation_setting_custom, change conversation_setting to 'other'
-    elif triggered_input_id == 'conversation-setting-custom':
+    elif triggered_input_id == "conversation-setting-custom":
         if conversation_setting_custom:
-            conversation_setting = 'other'
+            conversation_setting = "other"
 
     return conversation_setting, conversation_setting_custom

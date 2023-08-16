@@ -8,8 +8,9 @@ WORKDIR /app
 EXPOSE 8080
 
 # Copy the required files
-COPY app.py requirements.txt robots.txt sitemap.xml ./
+COPY app.py footer.py requirements.txt robots.txt sitemap.xml ./
 COPY assets assets
+COPY callbacks callbacks
 COPY pages pages
 
 # Create a virtual environment and activate it

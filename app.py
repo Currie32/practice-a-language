@@ -4,7 +4,6 @@ from flask import send_from_directory
 
 from footer import footer
 
-
 app = Dash(
     __name__,
     use_pages=True,
@@ -15,14 +14,14 @@ app.config.suppress_callback_exceptions = True
 server = app.server
 
 
-@server.route('/robots.txt')
+@server.route("/robots.txt")
 def serve_robots():
-    return send_from_directory('.', 'robots.txt', mimetype='text/plain')
+    return send_from_directory(".", "robots.txt", mimetype="text/plain")
 
 
-@server.route('/sitemap.xml')
+@server.route("/sitemap.xml")
 def serve_sitemap():
-    return send_from_directory('.', 'sitemap.xml', mimetype='application/xml')
+    return send_from_directory(".", "sitemap.xml", mimetype="application/xml")
 
 
 app.index_string = """<!DOCTYPE html>
@@ -52,13 +51,18 @@ app.index_string = """<!DOCTYPE html>
     </body>
 </html>"""
 
-app.layout = html.Div([
-    html.Div(className='container', children=[
-        page_container,
-        footer,
-    ])
-])
+app.layout = html.Div(
+    [
+        html.Div(
+            className="container",
+            children=[
+                page_container,
+                footer,
+            ],
+        )
+    ]
+)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run_server(debug=True, port=8080)

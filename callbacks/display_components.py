@@ -1,14 +1,16 @@
 from typing import Dict, List, Tuple
 
-from dash import callback, callback_context, Input, Output, State
+from dash import Input, Output, State, callback, callback_context
 
 
 @callback(
-    Output('help-highlight-for-translation', 'style'),
-    Output('help-translate-language-known', 'style'),
-    Input('conversation', 'children'),
+    Output("help-highlight-for-translation", "style"),
+    Output("help-translate-language-known", "style"),
+    Input("conversation", "children"),
 )
-def display_conversation_helpers(conversation: List) -> Tuple[Dict[str, str], Dict[str, str]]:
+def display_conversation_helpers(
+    conversation: List,
+) -> Tuple[Dict[str, str], Dict[str, str]]:
     """
     Show helper text and icons if there is a conversation, otherwise keep them hidden.
 
@@ -22,20 +24,17 @@ def display_conversation_helpers(conversation: List) -> Tuple[Dict[str, str], Di
 
     if conversation:
         return (
-            {'display': 'block'},
+            {"display": "block"},
             {
-                'margin': '20px 0px 0px',
-                'float': 'right',
-            }
+                "margin": "20px 0px 0px",
+                "float": "right",
+            },
         )
-    
-    return {'display': 'none'}, {'display': 'none'}
+
+    return {"display": "none"}, {"display": "none"}
 
 
-@callback(
-    Output('user-response', 'style'),
-    Input('conversation', 'children')
-)
+@callback(Output("user-response", "style"), Input("conversation", "children"))
 def display_user_input(conversation: List) -> Dict[str, str]:
     """
     Display the user response Input field if there is a conversation, otherwise hide it.
@@ -48,17 +47,17 @@ def display_user_input(conversation: List) -> Dict[str, str]:
     """
 
     if conversation:
-        return {'display': 'block'}
-    
-    return {'display': 'none'}
+        return {"display": "block"}
+
+    return {"display": "none"}
 
 
 @callback(
-    Output('loading', 'style', allow_duplicate=True),
-    Input('button-start-conversation', 'n_clicks'),
+    Output("loading", "style", allow_duplicate=True),
+    Input("button-start-conversation", "n_clicks"),
     Input("user-response", "n_submit"),
     State("user-response", "value"),
-    prevent_initial_call='initial_duplicate',
+    prevent_initial_call="initial_duplicate",
 )
 def loading_visible(
     button_start_conversation_n_clicks: int,
@@ -78,14 +77,14 @@ def loading_visible(
     """
 
     # Determine which input triggered the callback
-    triggered_input_id = callback_context.triggered[0]['prop_id'].split('.')[0]
+    triggered_input_id = callback_context.triggered[0]["prop_id"].split(".")[0]
 
-    if triggered_input_id == 'button-start-conversation':
+    if triggered_input_id == "button-start-conversation":
         if button_start_conversation_n_clicks:
-            return {'display': 'flex'}
+            return {"display": "flex"}
 
-    elif triggered_input_id == 'user-response':
+    elif triggered_input_id == "user-response":
         if user_response_n_submits is not None and user_response_text:
-            return {'display': 'flex'}
+            return {"display": "flex"}
 
-    return {'display': 'none'}
+    return {"display": "none"}

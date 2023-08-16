@@ -1,5 +1,4 @@
 import base64
-import os
 
 from gtts import gTTS
 
@@ -19,16 +18,13 @@ def get_audio_file(text: str, language: str) -> str:
 
     # Perform text-to-speech conversion
     tts = gTTS(text, lang=language)
-    audio_path = 'temp_audio.mp3'
+    audio_path = "temp_audio.mp3"
     tts.save(audio_path)
-    
+
     # Read and encode the audio file
-    with open(audio_path, 'rb') as audio_file:
+    with open(audio_path, "rb") as audio_file:
         audio_data = audio_file.read()
-        audio_base64 = base64.b64encode(audio_data).decode('utf-8')
+        audio_base64 = base64.b64encode(audio_data).decode("utf-8")
         audio_src = f"data:audio/mpeg;base64,{audio_base64}"
-    
-    # Delete the temporary audio file
-    # os.remove(audio_path)
-    
+
     return audio_src
