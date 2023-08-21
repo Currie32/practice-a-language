@@ -32,10 +32,8 @@ def start_conversation_button_disabled(
     has_different_languages = language_known != language_learn
 
     has_setting = (
-        ((conversation_setting == "other") & (conversation_setting_custom is not None))
-        | ((conversation_setting != "other") & (conversation_setting is not None))
-    )
-    print(has_setting)
+        (conversation_setting == "other") & (conversation_setting_custom is not None)
+    ) | ((conversation_setting != "other") & (conversation_setting is not None))
 
     return not (has_two_languages & has_different_languages & has_setting)
 
