@@ -2,7 +2,7 @@ from dash import Input, Output, callback
 
 
 @callback(
-    Output("user-response", "placeholder"),
+    Output("user-response-text", "placeholder"),
     Input("language-known", "value"),
     Input("language-learn", "value"),
 )

@@ -27,7 +27,6 @@ def display_conversation_helpers(
             {"display": "block"},
             {
                 "margin": "20px 0px 0px",
-                "float": "right",
             },
         )
 
@@ -47,7 +46,7 @@ def display_user_input(conversation: List) -> Dict[str, str]:
     """
 
     if conversation:
-        return {"display": "block"}
+        return {"display": "flex"}
 
     return {"display": "none"}
 
@@ -55,13 +54,17 @@ def display_user_input(conversation: List) -> Dict[str, str]:
 @callback(
     Output("loading", "style", allow_duplicate=True),
     Input("button-start-conversation", "n_clicks"),
-    Input("user-response", "n_submit"),
-    State("user-response", "value"),
+    Input("button-submit-response-text", "n_clicks"),
+    Input("user-response-text", "n_submit"),
+    Input("button-record-audio", "n_clicks"),
+    State("user-response-text", "value"),
     prevent_initial_call="initial_duplicate",
 )
 def loading_visible(
     button_start_conversation_n_clicks: int,
-    user_response_n_submits: int,
+    button_submit_text_n_clicks: int,
+    user_response_text_n_submits: int,
+    user_response_audio_n_clicks: int,
     user_response_text: str,
 ) -> Dict[str, str]:
     """
@@ -83,8 +86,16 @@ def loading_visible(
         if button_start_conversation_n_clicks:
             return {"display": "flex"}
 
-    elif triggered_input_id == "user-response":
-        if user_response_n_submits is not None and user_response_text:
+    if triggered_input_id == "button-submit-response-text":
+        if button_submit_text_n_clicks:
+            return {"display": "flex"}
+
+    elif triggered_input_id == "user-response-text":
+        if user_response_text_n_submits is not None and user_response_text:
+            return {"display": "flex"}
+
+    elif triggered_input_id == "button-record-audio":
+        if user_response_audio_n_clicks:
             return {"display": "flex"}
 
     return {"display": "none"}

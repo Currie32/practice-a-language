@@ -12,6 +12,7 @@ from dash import (
     html,
     no_update,
     register_page,
+    clientside_callback,
 )
 from dash_selectable import DashSelectable
 from deep_translator import GoogleTranslator
@@ -20,7 +21,7 @@ from langdetect import detect
 from langdetect.lang_detect_exception import LangDetectException
 
 from assets.audio import get_audio_file
-from assets.chat_request import get_assistant_message, system_content
+from assets.chat_request import get_assistant_message, system_content, translate_recording
 from callbacks.conversation_settings import (
     start_conversation_button_disabled,
     update_conversation_setting_values,
@@ -149,11 +150,6 @@ layout = html.Div(
                         ),
                         DashSelectable(id="conversation"),
                         html.Div(id="translation"),
-                        html.I(
-                            className="bi bi-question-circle",
-                            id="help-translate-language-known",
-                            style={"display": "none"},
-                        ),
                         html.Div(
                             id="loading",
                             children=[
@@ -177,13 +173,32 @@ layout = html.Div(
                                 ),
                             ],
                         ),
+                        html.I(
+                            className="bi bi-question-circle",
+                            id="help-translate-language-known",
+                            style={"display": "none"},
+                        ),
                         dbc.Tooltip(
                             id="tooltip-translate-language-known",
                             target="help-translate-language-known",
                         ),
-                        dbc.Input(
-                            id="user-response", type="text", style={"display": "none"}
+                        html.Div(
+                            id="user-response",
+                            children=[
+                                dbc.Textarea(id="user-response-text"),
+                                html.Div(children=[
+                                    dbc.Button(html.I(className="bi bi-mic-fill"), id="button-record-audio", n_clicks=0),
+                                    dbc.Button(html.I(className="bi bi-arrow-return-left"), id="button-submit-response-text", n_clicks=0),
+                                ]),
+                            ],
+                            style={"display": "none"},
                         ),
+                        # html.Button("Start Recording", id="start-button", n_clicks=1),
+                        # html.Button("Stop Recording", id="stop-button"),
+                        # html.Audio(id="audio-element", controls=True),
+                        # html.Div(id="audio-data", children='123'),
+                        dcc.Store(id="check-for-audio-file", data=False),
+                        # html.Button("testing", id="button-123"),
                     ],
                 ),
             ],
@@ -252,7 +267,6 @@ def start_conversation(
         MESSAGES.append({"role": "assistant", "content": message_assistant})
 
         # Create a list to store the conversation history
-
         conversation = [
             html.Div(
                 className="message-ai-wrapper",
@@ -280,17 +294,20 @@ def start_conversation(
 
 
 @callback(
-    Output("conversation", "children"),
-    Output("user-response", "value"),
-    Output("loading", "style"),
-    Input("user-response", "n_submit"),
-    State("user-response", "value"),
+    Output("conversation", "children", allow_duplicate=True),
+    Output("user-response-text", "value", allow_duplicate=True),
+    Output("loading", "style", allow_duplicate=True),
+    Input("user-response-text", "n_submit"),
+    Input("button-submit-response-text", "n_clicks"),
+    State("user-response-text", "value"),
     State("conversation", "children"),
     State("language-known", "value"),
     State("language-learn", "value"),
+    prevent_initial_call='initial_duplicate',
 )
-def continue_conversation(
+def continue_conversation_text(
     user_response_n_submits: int,
+    button_submit_n_clicks: int,
     message_user: str,
     conversation: List,
     language_known: str,
@@ -316,7 +333,10 @@ def continue_conversation(
     # Use the global variable inside the callback
     global MESSAGES
 
-    if user_response_n_submits is not None and message_user:
+    if (
+        user_response_n_submits is not None
+        or button_submit_n_clicks is not None
+    ) and message_user:
 
         try:
             language_detected = detect(message_user)
@@ -344,6 +364,21 @@ def continue_conversation(
         return conversation, "", {"display": "none"}
 
     return no_update
+
+
+@callback(
+    Output("button-record-audio", "children"),
+    Output("check-for-audio-file", "data", allow_duplicate=True),
+    Input("button-record-audio", "n_clicks"),
+    prevent_initial_call=True,
+)
+def change_user_response_audio_icon(n_clicks):
+
+    if n_clicks % 2 == 1:
+        return html.I(className="bi bi-headphones"), False
+
+    else:
+        return html.I(className="bi bi-mic-fill"), True
 
 
 def format_new_message(who: str, messages_count: int, message: str) -> List[html.Div]:
@@ -404,9 +439,7 @@ def play_newest_message(
 
     if conversation and toggle_audio:
 
-        newest_message = conversation[-1]["props"]["children"][0]["props"]["children"][
-            0
-        ]
+        newest_message = conversation[-1]["props"]["children"][0]["props"]["children"][0]
         language_learn_abbreviation = LANGUAGES_DICT[language_learn]
 
         return get_audio_file(newest_message, language_learn_abbreviation)
@@ -465,7 +498,61 @@ for i in range(100):
                         message_clicked, language_learn_abbreviation
                     )
 
-        return (
-            "",
-            "",
-        )
+        return ("", "")
+
+
+clientside_callback(
+    """
+    function(n_clicks) {
+        if (n_clicks % 2 === 1) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+                    var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    window.mediaRecorder = new MediaRecorder(stream);
+                    window.audioChunks = [];
+
+                    window.mediaRecorder.ondataavailable = function(e) {
+                        if (e.data.size > 0) {
+                            window.audioChunks.push(e.data);
+                        }
+                    };
+                    window.mediaRecorder.start();
+                })
+            }
+        }
+        return ""
+    }
+    """,
+    Output("user-response-text", "value", allow_duplicate=True),
+    Input("button-record-audio", "n_clicks"),
+    prevent_initial_call=True
+)
+
+clientside_callback(
+    """
+    function (n_clicks) {
+        if (n_clicks % 2 === 0) {
+            window.mediaRecorder.onstop = function() {
+                var audioBlob = new Blob(window.audioChunks, { type: 'audio/wav' });
+                var reader = new FileReader();
+                reader.onload = function(event){
+                    var base64data = event.target.result.split(',')[1];
+                    fetch('/store_audio', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ audio_data: base64data }),
+                    });
+                };
+                reader.readAsDataURL(audioBlob);
+            };
+            window.mediaRecorder.stop();
+        }
+    }
+    """,
+    Output("user-response-text", "children"),
+    Input("button-record-audio", "n_clicks"),
+    prevent_initial_call=True
+)
+

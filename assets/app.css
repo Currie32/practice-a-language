@@ -12,6 +12,9 @@ body {
     font-size: 22px;
     margin-left: 10px;
 }
+#button-record-audio {
+    margin-bottom: 5px;
+}
 #button-start-conversation {
     background-color: #0061F3;
     color: white;
@@ -133,13 +136,18 @@ body {
 #title {
     margin: 0px;
 }
-#user-input {
+#user-response {
+    display: flex;
     margin: 0px 0px 30px;
     width: 100%;
 }
-#user-input.form-control {
+#user-response-text {
+    height: 80px;
+    margin-right: 10px;
+}
+#user-response-text.form-control {
     border: 1px solid rgba(7, 76, 179, 0.9);
 }
-#user-input::placeholder {
+#user-response-text::placeholder {
     color: #aaa;
 }
