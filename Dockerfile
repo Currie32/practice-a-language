@@ -16,7 +16,7 @@ COPY pages pages
 # Create a virtual environment and activate it
 RUN python -m venv venv
 ENV PATH="/app/venv/bin:$PATH"
-    
+
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Specify the command to run the app

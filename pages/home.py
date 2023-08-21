@@ -2,17 +2,8 @@ from typing import Dict, List, Tuple
 
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import (
-    Input,
-    Output,
-    State,
-    callback,
-    callback_context,
-    dcc,
-    html,
-    no_update,
-    register_page,
-)
+from dash import (Input, Output, State, callback, callback_context,
+                  clientside_callback, dcc, html, no_update, register_page)
 from dash_selectable import DashSelectable
 from deep_translator import GoogleTranslator
 from gtts import lang
@@ -20,16 +11,14 @@ from langdetect import detect
 from langdetect.lang_detect_exception import LangDetectException
 
 from assets.audio import get_audio_file
-from assets.chat_request import get_assistant_message, system_content
+from assets.chat_request import (convert_audio_recording_to_text,
+                                 get_assistant_message, system_content)
 from callbacks.conversation_settings import (
-    start_conversation_button_disabled,
-    update_conversation_setting_values,
-)
-from callbacks.display_components import (
-    display_conversation_helpers,
-    display_user_input,
-    loading_visible,
-)
+    start_conversation_button_disabled, update_conversation_setting_values)
+from callbacks.display_components import (display_conversation_helpers,
+                                          display_user_input,
+                                          is_user_recording_audio,
+                                          loading_visible)
 from callbacks.placeholder_text import user_input_placeholder
 from callbacks.tooltips import tooltip_translate_language_known_text
 from callbacks.translate import translate_highlighted_text
@@ -149,11 +138,6 @@ layout = html.Div(
                         ),
                         DashSelectable(id="conversation"),
                         html.Div(id="translation"),
-                        html.I(
-                            className="bi bi-question-circle",
-                            id="help-translate-language-known",
-                            style={"display": "none"},
-                        ),
                         html.Div(
                             id="loading",
                             children=[
@@ -177,13 +161,38 @@ layout = html.Div(
                                 ),
                             ],
                         ),
+                        html.I(
+                            className="bi bi-question-circle",
+                            id="help-translate-language-known",
+                            style={"display": "none"},
+                        ),
                         dbc.Tooltip(
                             id="tooltip-translate-language-known",
                             target="help-translate-language-known",
                         ),
-                        dbc.Input(
-                            id="user-response", type="text", style={"display": "none"}
+                        html.Div(
+                            id="user-response",
+                            children=[
+                                dbc.Textarea(id="user-response-text"),
+                                html.Div(
+                                    children=[
+                                        dbc.Button(
+                                            html.I(className="bi bi-mic-fill"),
+                                            id="button-record-audio",
+                                            n_clicks=0,
+                                        ),
+                                        dbc.Button(
+                                            html.I(className="bi bi-arrow-return-left"),
+                                            id="button-submit-response-text",
+                                            n_clicks=0,
+                                        ),
+                                    ]
+                                ),
+                            ],
+                            style={"display": "none"},
                         ),
+                        # Boolean for when to look for the user's audio recording
+                        dcc.Store(id="check-for-audio-file", data=False),
                     ],
                 ),
             ],
@@ -240,7 +249,9 @@ def start_conversation(
                 "role": "system",
                 # Provide content about the conversation for the system (OpenAI's GPT)
                 "content": system_content(
-                    language_learn, language_known, conversation_setting
+                    conversation_setting,
+                    language_learn,
+                    language_known,
                 ),
             }
         )
@@ -252,7 +263,6 @@ def start_conversation(
         MESSAGES.append({"role": "assistant", "content": message_assistant})
 
         # Create a list to store the conversation history
-
         conversation = [
             html.Div(
                 className="message-ai-wrapper",
@@ -280,17 +290,20 @@ def start_conversation(
 
 
 @callback(
-    Output("conversation", "children"),
-    Output("user-response", "value"),
-    Output("loading", "style"),
-    Input("user-response", "n_submit"),
-    State("user-response", "value"),
+    Output("conversation", "children", allow_duplicate=True),
+    Output("user-response-text", "value", allow_duplicate=True),
+    Output("loading", "style", allow_duplicate=True),
+    Input("user-response-text", "n_submit"),
+    Input("button-submit-response-text", "n_clicks"),
+    State("user-response-text", "value"),
     State("conversation", "children"),
     State("language-known", "value"),
     State("language-learn", "value"),
+    prevent_initial_call="initial_duplicate",
 )
-def continue_conversation(
+def continue_conversation_text(
     user_response_n_submits: int,
+    button_submit_n_clicks: int,
     message_user: str,
     conversation: List,
     language_known: str,
@@ -302,6 +315,7 @@ def continue_conversation(
 
     Params:
         user_response_n_submits: Number of times the user response was submitted.
+        button_submit_n_clicks: Number of times the button to submit the user's response was clicked.
         message_user: The text of the user_response field when it was submitted.
         conversation: The conversation between the user and OpenAI's GPT.
         language_known: The language that the user speaks.
@@ -316,7 +330,9 @@ def continue_conversation(
     # Use the global variable inside the callback
     global MESSAGES
 
-    if user_response_n_submits is not None and message_user:
+    if (
+        user_response_n_submits is not None or button_submit_n_clicks is not None
+    ) and message_user:
 
         try:
             language_detected = detect(message_user)
@@ -465,7 +481,67 @@ for i in range(100):
                         message_clicked, language_learn_abbreviation
                     )
 
-        return (
-            "",
-            "",
-        )
+        return ("", "")
+
+
+# A clientside callback to start recording the user's audio when they click on
+# "button-record-audio". Need to be a clientside callback to access the user's
+# microphone as dash code runs on the server side and cannot access the
+# microphone after the app has been deployed to Google Cloud Run.
+clientside_callback(
+    """
+    function (n_clicks) {
+        if (n_clicks % 2 === 1) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+                    var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    window.mediaRecorder = new MediaRecorder(stream);
+                    window.audioChunks = [];
+
+                    window.mediaRecorder.ondataavailable = function(e) {
+                        if (e.data.size > 0) {
+                            window.audioChunks.push(e.data);
+                        }
+                    };
+                    window.mediaRecorder.start();
+                })
+            }
+        }
+        return ""
+    }
+    """,
+    Output("user-response-text", "value", allow_duplicate=True),
+    Input("button-record-audio", "n_clicks"),
+    prevent_initial_call=True,
+)
+
+
+# A clientside callback to stop the recording of the user's audio when they click on
+# "button-record-audio".
+clientside_callback(
+    """
+    function (n_clicks) {
+        if (n_clicks % 2 === 0) {
+            window.mediaRecorder.onstop = function() {
+                var audioBlob = new Blob(window.audioChunks, { type: 'audio/wav' });
+                var reader = new FileReader();
+                reader.onload = function(event){
+                    var base64data = event.target.result.split(',')[1];
+                    fetch('/save_audio_recording', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ audio_data: base64data }),
+                    });
+                };
+                reader.readAsDataURL(audioBlob);
+            };
+            window.mediaRecorder.stop();
+        }
+    }
+    """,
+    Output("user-response-text", "children"),
+    Input("button-record-audio", "n_clicks"),
+    prevent_initial_call=True,
+)
