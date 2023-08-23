@@ -31,18 +31,22 @@ LANGUAGES = sorted(LANGUAGES_DICT)  # Get just the names of the languages
 
 layout = html.Div(
     children=[
+        # Header section
         html.Div(
             id="header",
             children=[
                 html.H1(id="title", children="Practice a Language"),
             ],
         ),
+        # Content section
         html.Div(
             id="content",
             children=[
+                # Language selection section
                 html.Div(
                     className="languages",
                     children=[
+                        # Known language dropdown
                         html.Div(
                             id="language-menu-known",
                             children=[
@@ -54,6 +58,7 @@ layout = html.Div(
                                 ),
                             ],
                         ),
+                        # Learn language dropdown
                         html.Div(
                             id="language-menu-learn",
                             children=[
@@ -67,9 +72,11 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                # Conversation setting section
                 html.Div(
                     className="conversation-setting-wrapper",
                     children=[
+                        # Conversation setting dropdown
                         html.Div(
                             className="conversation-setting-menu",
                             children=[
@@ -99,6 +106,7 @@ layout = html.Div(
                                 ),
                             ],
                         ),
+                        # Custom conversation setting input
                         html.Div(
                             className="conversation-setting-custom-input",
                             children=[
@@ -111,6 +119,7 @@ layout = html.Div(
                         ),
                     ],
                 ),
+                # Toggle to play audio of new messages
                 html.P(
                     id="toggle-play-audio-wrapper",
                     children=[
@@ -118,26 +127,31 @@ layout = html.Div(
                             "Play audio of new message", id="toggle-play-audio-text"
                         ),
                         daq.ToggleSwitch(
-                            id="toggle-play-audio", value=True, color="#322CA1"
+                            id="toggle-play-audio", value=True, color="#322CA1",
                         ),
                     ],
                 ),
+                # Button to start a conversation
                 dbc.Button(
                     "Start a new conversation",
                     id="button-start-conversation",
                     n_clicks=0,
                     disabled=True,
                 ),
+                # Conversation section
                 html.Div(
                     id="conversation-div",
                     children=[
+                        # Helper text to highlight for translation
                         html.P(
                             "Highlight text to see the translation.",
                             id="help-highlight-for-translation",
                             style={"display": "none"},
                         ),
+                        # Show translated text that is highlighted
                         DashSelectable(id="conversation"),
                         html.Div(id="translation"),
+                        # Icons to show when loading a new message
                         html.Div(
                             id="loading",
                             children=[
@@ -161,20 +175,37 @@ layout = html.Div(
                                 ),
                             ],
                         ),
-                        html.I(
-                            className="bi bi-question-circle",
-                            id="help-translate-language-known",
-                            style={"display": "none"},
-                        ),
-                        dbc.Tooltip(
-                            id="tooltip-translate-language-known",
-                            target="help-translate-language-known",
-                        ),
+                        # Helper icons and tooltip about writing and recording user response
+                        html.Div(id="user-response-helper-icons", children=[
+                            html.Div(children=[
+                                html.I(
+                                    className="bi bi-question-circle",
+                                    id="help-translate-language-known",
+                                ),
+                                dbc.Tooltip(
+                                    id="tooltip-translate-language-known",
+                                    target="help-translate-language-known",
+                                ),
+                            ]),
+                            html.Div(children=[
+                                html.I(
+                                    className="bi bi-question-circle",
+                                    id="help-change-microphone-setting",
+                                ),
+                                dbc.Tooltip(
+                                    id="tooltip-change-microphone-setting",
+                                    target="help-change-microphone-setting",
+                                    children="If you are unable to record audio, you might need to change your device's microphone settings."
+                                ),
+                            ]),
+                        ]),
+                        # User response section
                         html.Div(
                             id="user-response",
                             children=[
                                 dbc.Textarea(id="user-response-text"),
                                 html.Div(
+                                    id="user-response-buttons",
                                     children=[
                                         dbc.Button(
                                             html.I(className="bi bi-mic-fill"),

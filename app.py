@@ -29,7 +29,7 @@ def serve_sitemap():
 
 
 app.index_string = """<!DOCTYPE html>
-<html>
+<html lang="en">
     <head>
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-THNE3MSS49"></script>
@@ -40,6 +40,19 @@ app.index_string = """<!DOCTYPE html>
 
             gtag('config', 'G-THNE3MSS49');
         </script>
+        <meta charset="UTF-8">
+        <meta name="description" content="Practice speaking and writing in a foreign language.">
+        <meta name="keywords" content="practice a language, learn a language, practice having conversations in a language, duolingo alternatives">
+        <meta property="og:title" content="Practice a Language">
+        <meta property="og:description" content="Practice speaking and writing in a foreign language.">
+        <meta property="og:image" content="https://practicealanguage.xyz/assets/favicon.ico">
+        <meta property="og:url" content="https://practicealanguage.xyz">
+        <meta name="twitter:card" content="https://practicealanguage.xyz/assets/favicon.ico">
+        <meta name="twitter:title" content="Practice a Language">
+        <meta name="twitter:description" content="Practice speaking and writing in a foreign language.">
+        <meta name="twitter:image" content="https://practicealanguage.xyz/assets/favicon.ico">
+        <link rel="canonical" href="https://practicealanguage.xyz">
+        <meta name="robots" content="index, follow">
         {%metas%}
         <title>{%title%}</title>
         {%favicon%}
@@ -70,6 +83,10 @@ app.layout = html.Div(
 
 @server.route("/save_audio_recording", methods=["POST"])
 def save_audio_recording():
+    """
+    Save the audio that the user has recorded so that it can be sent
+    to OpenAI's Whisper-1 API.
+    """
     try:
         data = request.get_json()
         audio_data = data["audio_data"]
