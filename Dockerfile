@@ -17,6 +17,7 @@ COPY pages pages
 RUN python -m venv venv
 ENV PATH="/app/venv/bin:$PATH"
 
+# Install dependencies
 RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Specify the command to run the app

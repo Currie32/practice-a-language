@@ -29,7 +29,7 @@
     }
     #footer a, #footer p {
         display: block;
-        margin: 0px auto 5px;
+        margin: 0px auto 10px;
     }
     .footer-pipe {
         display: none;

@@ -5,7 +5,7 @@ from dash import Input, Output, State, callback, callback_context, html
 
 @callback(
     Output("help-highlight-for-translation", "style"),
-    Output("help-translate-language-known", "style"),
+    Output("user-response-helper-icons", "style"),
     Input("conversation", "children"),
 )
 def display_conversation_helpers(
@@ -19,14 +19,16 @@ def display_conversation_helpers(
 
     Returns:
         The style value for the highlight-to-translate text
-        The style value for the translate-language-known icon.
+        The style value for the user-response-helper-icons div.
     """
 
     if conversation:
         return (
             {"display": "block"},
             {
+                "display": "flex",
                 "margin": "20px 0px 0px",
+                "justify-content": "space-between",
             },
         )
 

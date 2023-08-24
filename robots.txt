@@ -1,2 +1,2 @@
 User-agent: *
-Sitemap: https://statisticalstories.xyz/sitemap.xml
+Sitemap: https://practicealanguage.xyz/sitemap.xml

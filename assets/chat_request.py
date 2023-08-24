@@ -89,7 +89,7 @@ def _chat_completion_request(messages: List[Dict[str, str]]) -> Dict:
     json_data = {
         "model": "gpt-3.5-turbo-0613",
         "messages": messages,
-        "temperature": 1.5,
+        "temperature": 1.5,  # Higher values provide more varied responses
     }
     try:
         response = requests.post(

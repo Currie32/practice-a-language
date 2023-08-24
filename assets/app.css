@@ -141,6 +141,9 @@ body {
     margin: 0px 0px 30px;
     width: 100%;
 }
+#user-response-buttons {
+    width: 42px;
+}
 #user-response-text {
     height: 80px;
     margin-right: 10px;
