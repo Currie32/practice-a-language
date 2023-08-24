@@ -451,9 +451,7 @@ def play_newest_message(
 
     if conversation and toggle_audio:
 
-        newest_message = conversation[-1]["props"]["children"][0]["props"]["children"][
-            0
-        ]
+        newest_message = conversation[-1]["props"]["children"][0]["props"]["children"][0]
         language_learn_abbreviation = LANGUAGES_DICT[language_learn]
 
         return get_audio_file(newest_message, language_learn_abbreviation)
