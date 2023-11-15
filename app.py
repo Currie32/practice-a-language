@@ -51,6 +51,7 @@ app.index_string = """<!DOCTYPE html>
         <meta name="twitter:title" content="Practice a Language">
         <meta name="twitter:description" content="Practice speaking and writing in a foreign language.">
         <meta name="twitter:image" content="https://practicealanguage.xyz/assets/favicon.ico">
+        <meta name="google-adsense-account" content="ca-pub-4657073290295216">
         <link rel="canonical" href="https://practicealanguage.xyz">
         <meta name="robots" content="index, follow">
         {%metas%}
@@ -73,6 +74,12 @@ app.layout = html.Div(
         html.Div(
             className="container",
             children=[
+                html.Div(
+                    id="header",
+                    children=[
+                        html.H1(id="title", children="Practice a Language"),
+                    ],
+                ),
                 page_container,
                 footer,
             ],

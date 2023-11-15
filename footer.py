@@ -1,4 +1,4 @@
-from dash import html
+from dash import dcc, html
 
 
 footer = html.Div(id='footer', children=[
@@ -13,4 +13,8 @@ footer = html.Div(id='footer', children=[
     ),
     html.Div("|", className="footer-pipe"),
     html.P("david.currie32@gmail.com"),
+    html.Div("|", className="footer-pipe"),
+    dcc.Link("Terms & Conditions", href="/terms"),
+    html.Div("|", className="footer-pipe"),
+    dcc.Link("Privacy Policy", href="/privacy_policy"),
 ])
