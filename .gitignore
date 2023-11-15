@@ -162,4 +162,5 @@ cython_debug/
 # Custom
 .DS_Store
 *.ipynb
+ads.txt
 temp_audio.mp3

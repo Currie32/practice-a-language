@@ -31,13 +31,6 @@ LANGUAGES = sorted(LANGUAGES_DICT)  # Get just the names of the languages
 
 layout = html.Div(
     children=[
-        # Header section
-        html.Div(
-            id="header",
-            children=[
-                html.H1(id="title", children="Practice a Language"),
-            ],
-        ),
         # Content section
         html.Div(
             id="content",
