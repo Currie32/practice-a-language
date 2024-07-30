@@ -39,8 +39,7 @@ def _chat_completion_request(message: str, language_learn: str) -> str:
     try:
         content = f"You are an excellent {language_learn} teacher. Correct this sentence for any mistakes:\n{message}"
         completion = client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "system", "content": content}]
+            model="gpt-3.5-turbo", messages=[{"role": "system", "content": content}]
         )
         return completion.choices[0].message.content
     except Exception as e:

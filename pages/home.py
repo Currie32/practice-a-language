@@ -2,8 +2,18 @@ from typing import Dict, List, Tuple
 
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import (Input, Output, State, callback, callback_context,
-                  clientside_callback, dcc, html, no_update, register_page)
+from dash import (
+    Input,
+    Output,
+    State,
+    callback,
+    callback_context,
+    clientside_callback,
+    dcc,
+    html,
+    no_update,
+    register_page,
+)
 from dash_selectable import DashSelectable
 from deep_translator import GoogleTranslator
 from gtts import lang
@@ -11,15 +21,22 @@ from langdetect import detect
 from langdetect.lang_detect_exception import LangDetectException
 
 from assets.audio import get_audio_file
-from assets.chat_request import (convert_audio_recording_to_text,
-                                 get_assistant_message, system_content)
+from assets.chat_request import (
+    convert_audio_recording_to_text,
+    get_assistant_message,
+    system_content,
+)
 from assets.message_correction import get_corrected_message
 from callbacks.conversation_settings import (
-    start_conversation_button_disabled, update_conversation_setting_values)
-from callbacks.display_components import (display_conversation_helpers,
-                                          display_user_input,
-                                          is_user_recording_audio,
-                                          loading_visible)
+    start_conversation_button_disabled,
+    update_conversation_setting_values,
+)
+from callbacks.display_components import (
+    display_conversation_helpers,
+    display_user_input,
+    is_user_recording_audio,
+    loading_visible,
+)
 from callbacks.placeholder_text import user_input_placeholder
 from callbacks.tooltips import tooltip_translate_language_known_text
 from callbacks.translate import translate_highlighted_text
@@ -40,7 +57,9 @@ layout = html.Div(
                 html.Div(
                     id="intro",
                     children=[
-                        html.P(children="Practice a language by having conversations about the topic of your choice."),
+                        html.P(
+                            children="Practice a language by having conversations about the topic of your choice."
+                        ),
                     ],
                 ),
                 # Language selection section
@@ -135,16 +154,29 @@ layout = html.Div(
                         html.Div(
                             id="toggle-play-audio-div",
                             children=[
-                                html.P("Play audio of new message", id="audio-settings-text"),
-                                daq.ToggleSwitch(id="toggle-play-audio", value=True, color="#322CA1"),
-                            ]
+                                html.P(
+                                    "Play audio of new message",
+                                    id="audio-settings-text",
+                                ),
+                                daq.ToggleSwitch(
+                                    id="toggle-play-audio", value=True, color="#322CA1"
+                                ),
+                            ],
                         ),
                         html.Div(
                             id="slider-audio-speed-div",
                             children=[
                                 html.P("Audio speed", id="audio-settings-text"),
-                                daq.Slider(id="audio-speed", min=1, max=21, value=11, step=10, size=100, color='#322CA1'),
-                            ]
+                                daq.Slider(
+                                    id="audio-speed",
+                                    min=1,
+                                    max=21,
+                                    value=11,
+                                    step=10,
+                                    size=100,
+                                    color="#322CA1",
+                                ),
+                            ],
                         ),
                     ],
                 ),
@@ -193,29 +225,36 @@ layout = html.Div(
                             ],
                         ),
                         # Helper icons and tooltip about writing and recording user response
-                        html.Div(id="user-response-helper-icons", children=[
-                            html.Div(children=[
-                                html.I(
-                                    className="bi bi-question-circle",
-                                    id="help-translate-language-known",
+                        html.Div(
+                            id="user-response-helper-icons",
+                            children=[
+                                html.Div(
+                                    children=[
+                                        html.I(
+                                            className="bi bi-question-circle",
+                                            id="help-translate-language-known",
+                                        ),
+                                        dbc.Tooltip(
+                                            id="tooltip-translate-language-known",
+                                            target="help-translate-language-known",
+                                        ),
+                                    ]
                                 ),
-                                dbc.Tooltip(
-                                    id="tooltip-translate-language-known",
-                                    target="help-translate-language-known",
+                                html.Div(
+                                    children=[
+                                        html.I(
+                                            className="bi bi-question-circle",
+                                            id="help-change-microphone-setting",
+                                        ),
+                                        dbc.Tooltip(
+                                            id="tooltip-change-microphone-setting",
+                                            target="help-change-microphone-setting",
+                                            children="If you are unable to record audio, you might need to change your device's microphone settings.",
+                                        ),
+                                    ]
                                 ),
-                            ]),
-                            html.Div(children=[
-                                html.I(
-                                    className="bi bi-question-circle",
-                                    id="help-change-microphone-setting",
-                                ),
-                                dbc.Tooltip(
-                                    id="tooltip-change-microphone-setting",
-                                    target="help-change-microphone-setting",
-                                    children="If you are unable to record audio, you might need to change your device's microphone settings."
-                                ),
-                            ]),
-                        ]),
+                            ],
+                        ),
                         # User response section
                         html.Div(
                             id="user-response",
@@ -234,7 +273,7 @@ layout = html.Div(
                                             id="button-submit-response-text",
                                             n_clicks=0,
                                         ),
-                                    ]
+                                    ],
                                 ),
                             ],
                             style={"display": "none"},
@@ -290,7 +329,6 @@ def start_conversation(
         conversation_setting = conversation_setting_custom
 
     if button_start_conversation_n_clicks:
-
         messages = []
         messages.append(
             {
@@ -358,7 +396,7 @@ def continue_conversation_text(
     conversation: List,
     language_known: str,
     language_learn: str,
-    messages_store: List[Dict[str, str]]
+    messages_store: List[Dict[str, str]],
 ) -> Tuple[List, str, Dict[str, str]]:
     """
     Continue the conversation by adding the user's response, then calling OpenAI
@@ -382,7 +420,6 @@ def continue_conversation_text(
     if (
         user_response_n_submits is not None or button_submit_n_clicks is not None
     ) and message_user:
-
         try:
             language_detected = detect(message_user)
             if language_detected == LANGUAGES_DICT[language_known]:
@@ -414,7 +451,9 @@ def continue_conversation_text(
     return no_update
 
 
-def format_new_message(who: str, messages_count: int, message: str, message_corrected: str = "") -> List[html.Div]:
+def format_new_message(
+    who: str, messages_count: int, message: str, message_corrected: str = ""
+) -> List[html.Div]:
     """
     Format a new message so that it is ready to be added to the conversation.
 
@@ -478,8 +517,9 @@ def play_newest_message(
     """
 
     if conversation and toggle_audio:
-
-        newest_message = conversation[-1]["props"]["children"][0]["props"]["children"][0]
+        newest_message = conversation[-1]["props"]["children"][0]["props"]["children"][
+            0
+        ]
         language_learn_abbreviation = LANGUAGES_DICT[language_learn]
 
         return get_audio_file(newest_message, language_learn_abbreviation, audio_speed)
@@ -490,6 +530,7 @@ def play_newest_message(
 # Loop through the messages to determine which one should have its audio played
 # Use 100 as a safe upper limit. Using len(MESSAGES) didn't work
 for i in range(100):
+
     @callback(
         Output(f"audio-player-1", "src", allow_duplicate=True),
         Output(f"audio-player-2", "src", allow_duplicate=True),
@@ -498,7 +539,7 @@ for i in range(100):
         State("toggle-play-audio", "value"),
         State("audio-speed", "value"),
         State("language-learn", "value"),
-        prevent_initial_call='initial_duplicate'
+        prevent_initial_call="initial_duplicate",
     )
     def play_audio_of_clicked_message(
         button_message_n_clicks: int,
@@ -522,7 +563,6 @@ for i in range(100):
         """
 
         if button_message_n_clicks and toggle_audio:
-
             triggered_input_id = callback_context.triggered[0]["prop_id"].split(".")[0]
             message_number_clicked = triggered_input_id.split("-")[-1]
 
@@ -536,7 +576,9 @@ for i in range(100):
                 # Rotate between audio elements so that the audio is always played
                 if button_message_n_clicks % 2 == 0:
                     return (
-                        get_audio_file(message_clicked, language_learn_abbreviation, audio_speed),
+                        get_audio_file(
+                            message_clicked, language_learn_abbreviation, audio_speed
+                        ),
                         "",
                     )
                 else:

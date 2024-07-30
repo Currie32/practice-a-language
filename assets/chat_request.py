@@ -37,12 +37,10 @@ def convert_audio_recording_to_text(check_for_audio_file: bool) -> str:
 
     while check_for_audio_file:
         if os.path.exists(audio_recording):
-
             audio_file = open(audio_recording, "rb")
             os.remove(audio_recording)
             transcript = client.audio.transcriptions.create(
-                model="whisper-1",
-                file=audio_file
+                model="whisper-1", file=audio_file
             )
             message_user = transcript.to_dict()["text"]
 
@@ -88,10 +86,7 @@ def _chat_completion_request(messages: List[Dict[str, str]]) -> Dict:
 
     try:
         completion = client.chat.completions.create(
-            model="gpt-4o-mini",
-            temperature=1.5,
-            max_tokens=50,
-            messages=messages
+            model="gpt-4o-mini", temperature=1.5, max_tokens=50, messages=messages
         )
         return completion
     except Exception as e:
