@@ -31,7 +31,7 @@ body {
     margin: auto;
     max-width: 600px;
     min-height: 470px;
-    padding: 0px 20px;
+    padding: 0px 20px 10px;
 }
 #conversation {
     display: block;
@@ -68,6 +68,13 @@ body {
     margin: 10px 0px -15px;
     width: fit-content;
 }
+#intro {
+    color: #333;
+    font-size: 20px;
+    font-style: italic;
+    margin: 0px 20px 20px;
+    text-align: center;
+}
 .languages {
     display: flex;
     min-width: 100%;
@@ -102,6 +109,9 @@ body {
     float: left;
     max-width: 75%;
     padding: 5px 10px;
+    text-decoration: underline;
+    text-decoration-color: #87b7ff;
+    text-decoration-style: dotted;
     width: fit-content;
 }
 .message-user {
@@ -109,6 +119,9 @@ body {
     border-radius: 4px 0px 4px 4px;
     clear: both;
     padding: 5px 10px;
+    text-decoration: underline;
+    text-decoration-color: #000;
+    text-decoration-style: dotted;
     width: fit-content;
 }
 .message-user-wrapper {
@@ -117,15 +130,28 @@ body {
     margin: 15px 0px;
     width: 100%;
 }
-#toggle-play-audio-text {
+#audio-settings-text {
     color: #aaa;
     font-size: 14px;
     font-style: italic;
     margin-right: 10px;
     padding-top: 2px;
 }
-#toggle-play-audio-wrapper {
+#audio-settings {
     display: flex;
+}
+#toggle-play-audio-div {
+    display: flex;
+    margin: 0px 120px 10px 0px;
+}
+#slider-audio-speed-div {
+    display: flex;
+    margin: 0px 0px 10px;
+}
+#audio-speed {
+    margin-left: 10px;
+    margin-top: 5px;
+    width: 50px;
 }
 #translation {
     clear: both;
@@ -153,4 +179,16 @@ body {
 }
 #user-response-text::placeholder {
     color: #aaa;
+}
+
+@media screen and (max-width: 600px) {
+    #audio-settings {
+        display: block;
+    }
+    #intro {
+        font-size: 18px;
+    }
+    #toggle-play-audio-div {
+        margin: 0px;
+    }
 }

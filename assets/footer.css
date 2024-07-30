@@ -1,15 +1,16 @@
 #buy-me-a-coffee-logo {
     max-width: 100px;
+    margin-top: -3px;
 }
 #email {
-    font-size: 14px;
     text-align: center;
 }
 #footer {
     border-top: 1px solid #cccccc;
     display: flex;
+    font-size: 13px;
     justify-content: center;
-    margin: 20px auto 0px;
+    margin: 20px auto 5px;
     width: 100%;
 }
 #footer a {
@@ -23,6 +24,9 @@
     margin-top: 25px;
 }
 @media (max-width: 800px) {
+    #buy-me-a-coffee-logo {
+        margin-top: 0px;
+    }
     #footer {
         display: block;
         padding: 20px;

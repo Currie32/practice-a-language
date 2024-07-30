@@ -6,6 +6,7 @@ deep-translator==1.11.4
 Flask==2.2.5
 gTTS==2.3.2
 langdetect==1.0.9
-openai==0.27.8
+openai==1.12.0
 orjson==3.9.5
+pydub==0.25.1
 tenacity==8.2.2

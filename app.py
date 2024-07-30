@@ -41,10 +41,9 @@ app.index_string = """<!DOCTYPE html>
             gtag('config', 'G-THNE3MSS49');
         </script>
         <meta charset="UTF-8">
-        <meta name="description" content="Practice speaking and writing in a foreign language.">
-        <meta name="keywords" content="practice a language, learn a language, practice having conversations in a language, duolingo alternatives">
+        <meta name="description" content="Practice a language by having conversations about the topic of your choice.">
         <meta property="og:title" content="Practice a Language">
-        <meta property="og:description" content="Practice speaking and writing in a foreign language.">
+        <meta property="og:description" content="Practice a language by having conversations about the topic of your choice.">
         <meta property="og:image" content="https://practicealanguage.xyz/assets/favicon.ico">
         <meta property="og:url" content="https://practicealanguage.xyz">
         <meta name="twitter:card" content="https://practicealanguage.xyz/assets/favicon.ico">
