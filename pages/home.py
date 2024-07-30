@@ -13,6 +13,7 @@ from langdetect.lang_detect_exception import LangDetectException
 from assets.audio import get_audio_file
 from assets.chat_request import (convert_audio_recording_to_text,
                                  get_assistant_message, system_content)
+from assets.message_correction import get_corrected_message
 from callbacks.conversation_settings import (
     start_conversation_button_disabled, update_conversation_setting_values)
 from callbacks.display_components import (display_conversation_helpers,
@@ -22,6 +23,7 @@ from callbacks.display_components import (display_conversation_helpers,
 from callbacks.placeholder_text import user_input_placeholder
 from callbacks.tooltips import tooltip_translate_language_known_text
 from callbacks.translate import translate_highlighted_text
+
 
 register_page(__name__, path="")
 MESSAGES = []
@@ -35,6 +37,12 @@ layout = html.Div(
         html.Div(
             id="content",
             children=[
+                html.Div(
+                    id="intro",
+                    children=[
+                        html.P(children="Practice a language by having conversations about the topic of your choice."),
+                    ],
+                ),
                 # Language selection section
                 html.Div(
                     className="languages",
@@ -75,11 +83,19 @@ layout = html.Div(
                             children=[
                                 dcc.Dropdown(
                                     [
+                                        "a book you read",
+                                        "a movie you watched",
+                                        "a recent holiday",
+                                        "a restaurant you went to",
                                         "asking for directions",
                                         "booking a hotel",
                                         "buying a bus ticket",
                                         "buying groceries",
                                         "cooking a meal",
+                                        "favourite foods",
+                                        "going to a concert",
+                                        "going to a movie",
+                                        "going to a restaurant",
                                         "going to a show",
                                         "hobbies",
                                         "making a dinner reservation",
@@ -88,13 +104,13 @@ layout = html.Div(
                                         "ordering at a cafe",
                                         "ordering at a restaurant",
                                         "pets",
-                                        "recent movies",
+                                        "planning a trip",
                                         "renting a car",
                                         "shopping in a store",
                                         "weekend plans",
                                         "other",
                                     ],
-                                    placeholder="Choose a setting",
+                                    placeholder="Choose a topic",
                                     id="conversation-setting",
                                 ),
                             ],
@@ -105,7 +121,7 @@ layout = html.Div(
                             children=[
                                 dbc.Input(
                                     id="conversation-setting-custom",
-                                    placeholder="Or type a custom setting for a conversation",
+                                    placeholder="Or type a custom topic for a conversation",
                                     type="text",
                                 ),
                             ],
@@ -113,14 +129,22 @@ layout = html.Div(
                     ],
                 ),
                 # Toggle to play audio of new messages
-                html.P(
-                    id="toggle-play-audio-wrapper",
+                html.Div(
+                    id="audio-settings",
                     children=[
-                        html.P(
-                            "Play audio of new message", id="toggle-play-audio-text"
+                        html.Div(
+                            id="toggle-play-audio-div",
+                            children=[
+                                html.P("Play audio of new message", id="audio-settings-text"),
+                                daq.ToggleSwitch(id="toggle-play-audio", value=True, color="#322CA1"),
+                            ]
                         ),
-                        daq.ToggleSwitch(
-                            id="toggle-play-audio", value=True, color="#322CA1",
+                        html.Div(
+                            id="slider-audio-speed-div",
+                            children=[
+                                html.P("Audio speed", id="audio-settings-text"),
+                                daq.Slider(id="audio-speed", min=1, max=21, value=11, step=10, size=100, color='#322CA1'),
+                            ]
                         ),
                     ],
                 ),
@@ -217,6 +241,8 @@ layout = html.Div(
                         ),
                         # Boolean for when to look for the user's audio recording
                         dcc.Store(id="check-for-audio-file", data=False),
+                        # Store for messages
+                        dcc.Store(id="messages-store", data=[]),
                     ],
                 ),
             ],
@@ -228,6 +254,7 @@ layout = html.Div(
 @callback(
     Output("conversation", "children", allow_duplicate=True),
     Output("loading", "style", allow_duplicate=True),
+    Output("messages-store", "data", allow_duplicate=True),
     Input("button-start-conversation", "n_clicks"),
     State("language-known", "value"),
     State("language-learn", "value"),
@@ -258,17 +285,14 @@ def start_conversation(
         The display value for the loading icons.
     """
 
-    # Use the global variables inside the callback
-    global MESSAGES
-
     # Replace conversation_setting with conversation_setting_custom if it has a value
     if conversation_setting_custom:
         conversation_setting = conversation_setting_custom
 
     if button_start_conversation_n_clicks:
 
-        MESSAGES = []
-        MESSAGES.append(
+        messages = []
+        messages.append(
             {
                 "role": "system",
                 # Provide content about the conversation for the system (OpenAI's GPT)
@@ -281,10 +305,10 @@ def start_conversation(
         )
 
         # Get the first message in the conversation from OpenAI's GPT
-        message_assistant = get_assistant_message(MESSAGES)
-        # message_assistant = 'Guten morgen!' #  <- Testing message
+        message_assistant = get_assistant_message(messages)
+        # message_assistant = 'Guten morgen, wie kann ich ihnen helfen!' #  <- Testing message
 
-        MESSAGES.append({"role": "assistant", "content": message_assistant})
+        messages.append({"role": "assistant", "content": message_assistant})
 
         # Create a list to store the conversation history
         conversation = [
@@ -304,25 +328,27 @@ def start_conversation(
                     # For initial audio play
                     html.Audio(id="audio-player-0", autoPlay=True),
                     # Need two audio elements to always provide playback after conversation has been created
-                    html.Audio(id=f"audio-player-1-1", autoPlay=True),
-                    html.Audio(id=f"audio-player-1-2", autoPlay=True),
+                    html.Audio(id=f"audio-player-1", autoPlay=True),
+                    html.Audio(id=f"audio-player-2", autoPlay=True),
                 ],
             )
         ]
 
-        return conversation, {"display": "none"}
+        return conversation, {"display": "none"}, messages
 
 
 @callback(
     Output("conversation", "children", allow_duplicate=True),
     Output("user-response-text", "value", allow_duplicate=True),
     Output("loading", "style", allow_duplicate=True),
+    Output("messages-store", "data", allow_duplicate=True),
     Input("user-response-text", "n_submit"),
     Input("button-submit-response-text", "n_clicks"),
     State("user-response-text", "value"),
     State("conversation", "children"),
     State("language-known", "value"),
     State("language-learn", "value"),
+    State("messages-store", "data"),
     prevent_initial_call="initial_duplicate",
 )
 def continue_conversation_text(
@@ -332,6 +358,7 @@ def continue_conversation_text(
     conversation: List,
     language_known: str,
     language_learn: str,
+    messages_store: List[Dict[str, str]]
 ) -> Tuple[List, str, Dict[str, str]]:
     """
     Continue the conversation by adding the user's response, then calling OpenAI
@@ -344,15 +371,13 @@ def continue_conversation_text(
         conversation: The conversation between the user and OpenAI's GPT.
         language_known: The language that the user speaks.
         language_learn: The language that the user wants to learn.
+        messages_store: Store of messages.
 
     Returns:
         The conversation with the new messages from the user and OpenAI's GPT.
         An empty string for the user response Input field.
         The new display value to hide the loading icons.
     """
-
-    # Use the global variable inside the callback
-    global MESSAGES
 
     if (
         user_response_n_submits is not None or button_submit_n_clicks is not None
@@ -366,27 +391,30 @@ def continue_conversation_text(
                     target=LANGUAGES_DICT[language_learn],
                 )
                 message_user = translator.translate(message_user)
+            else:
+                message_user = get_corrected_message(message_user, language_learn)
         except LangDetectException:
             pass
 
-        MESSAGES.append({"role": "user", "content": message_user})
-        message_new = format_new_message("user", len(MESSAGES), message_user)
+        messages = messages_store.copy()
+        messages.append({"role": "user", "content": message_user})
+        message_new = format_new_message("user", len(messages), message_user)
         conversation = conversation + message_new
 
-        messages_to_send = [MESSAGES[0]] + MESSAGES[1:][-4:]
+        messages_to_send = [messages[0]] + messages[1:][-5:]
 
         message_assistant = get_assistant_message(messages_to_send)
         # message_assistant = 'Natürlich!'  # <- testing message
-        MESSAGES.append({"role": "assistant", "content": message_assistant})
-        message_new = format_new_message("ai", len(MESSAGES), message_assistant)
+        messages.append({"role": "assistant", "content": message_assistant})
+        message_new = format_new_message("ai", len(messages), message_assistant)
         conversation = conversation + message_new
 
-        return conversation, "", {"display": "none"}
+        return conversation, "", {"display": "none"}, messages
 
     return no_update
 
 
-def format_new_message(who: str, messages_count: int, message: str) -> List[html.Div]:
+def format_new_message(who: str, messages_count: int, message: str, message_corrected: str = "") -> List[html.Div]:
     """
     Format a new message so that it is ready to be added to the conversation.
 
@@ -409,26 +437,32 @@ def format_new_message(who: str, messages_count: int, message: str) -> List[html
                     children=[message],
                 ),
                 html.Div(
+                    className=f"message-{who}-corrected",
+                    id=f"message-{messages_count - 1}-corrected",
+                    children=[message_corrected],
+                ),
+                html.Div(
                     html.I(className="bi bi-play-circle", id="button-play-audio"),
                     id=f"button-message-{messages_count - 1}",
                     className="button-play-audio-wrapper",
                 ),
                 # Need two audio elements to always provide playback
-                html.Audio(id=f"audio-player-{messages_count - 1}-1", autoPlay=True),
-                html.Audio(id=f"audio-player-{messages_count - 1}-2", autoPlay=True),
+                html.Audio(id=f"audio-player-1", autoPlay=True),
+                html.Audio(id=f"audio-player-2", autoPlay=True),
             ],
         )
     ]
 
 
 @callback(
-    Output("audio-player-0", "src"),
+    Output("audio-player-1", "src"),
     Input("conversation", "children"),
     State("toggle-play-audio", "value"),
+    State("audio-speed", "value"),
     State("language-learn", "value"),
 )
 def play_newest_message(
-    conversation: List, toggle_audio: bool, language_learn: str
+    conversation: List, toggle_audio: bool, audio_speed: int, language_learn: str
 ) -> str:
     """
     Play the newest message in the conversation.
@@ -436,6 +470,7 @@ def play_newest_message(
     Params:
         conversation: Contains all of the data about the conversation
         toggle_audio: Whether to play the audio of the newest message
+        audio_speed: The speed of the audio
         language_learn: The language that the user wants to learn.
 
     Returns:
@@ -447,7 +482,7 @@ def play_newest_message(
         newest_message = conversation[-1]["props"]["children"][0]["props"]["children"][0]
         language_learn_abbreviation = LANGUAGES_DICT[language_learn]
 
-        return get_audio_file(newest_message, language_learn_abbreviation)
+        return get_audio_file(newest_message, language_learn_abbreviation, audio_speed)
 
     return no_update
 
@@ -455,17 +490,21 @@ def play_newest_message(
 # Loop through the messages to determine which one should have its audio played
 # Use 100 as a safe upper limit. Using len(MESSAGES) didn't work
 for i in range(100):
-
     @callback(
-        Output(f"audio-player-{i+1}-1", "src"),
-        Output(f"audio-player-{i+1}-2", "src"),
+        Output(f"audio-player-1", "src", allow_duplicate=True),
+        Output(f"audio-player-2", "src", allow_duplicate=True),
         Input(f"button-message-{i+1}", "n_clicks"),
         State(f"conversation", "children"),
+        State("toggle-play-audio", "value"),
+        State("audio-speed", "value"),
         State("language-learn", "value"),
+        prevent_initial_call='initial_duplicate'
     )
     def play_audio_of_clicked_message(
         button_message_n_clicks: int,
         conversation: List,
+        toggle_audio: bool,
+        audio_speed: int,
         language_learn: str,
     ) -> str:
         """
@@ -474,13 +513,15 @@ for i in range(100):
         Params:
             button_message_n_clicks: The number of times the play-audio button was clicked.
             conversation: The conversation between the user and OpenAI's GPT.
+            toggle_audio: Whether to play the audio of the new message
+            audio_speed: The speed of the audio
             language_learn: The language that the user wants to learn.
 
         Returns:
             A path to the message's audio that is to be played
         """
 
-        if button_message_n_clicks:
+        if button_message_n_clicks and toggle_audio:
 
             triggered_input_id = callback_context.triggered[0]["prop_id"].split(".")[0]
             message_number_clicked = triggered_input_id.split("-")[-1]
@@ -495,12 +536,12 @@ for i in range(100):
                 # Rotate between audio elements so that the audio is always played
                 if button_message_n_clicks % 2 == 0:
                     return (
-                        get_audio_file(message_clicked, language_learn_abbreviation),
+                        get_audio_file(message_clicked, language_learn_abbreviation, audio_speed),
                         "",
                     )
                 else:
                     return "", get_audio_file(
-                        message_clicked, language_learn_abbreviation
+                        message_clicked, language_learn_abbreviation, audio_speed
                     )
 
         return ("", "")

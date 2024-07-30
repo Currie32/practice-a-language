@@ -4,6 +4,8 @@ from dash import dcc, html
 footer = html.Div(id='footer', children=[
     html.P("Practice a Language. All rights reserved."),
     html.Div("|", className="footer-pipe"),
+    dcc.Link("About", href="/about"),
+    html.Div("|", className="footer-pipe"),
     html.A("We're open source!", target="_blank", href="https://github.com/Currie32/practice-a-language"),
     html.Div("|", className="footer-pipe"),
     html.A(
@@ -14,7 +16,7 @@ footer = html.Div(id='footer', children=[
     html.Div("|", className="footer-pipe"),
     html.P("david.currie32@gmail.com"),
     html.Div("|", className="footer-pipe"),
-    dcc.Link("Terms & Conditions", href="/terms"),
+    dcc.Link("Terms", href="/terms"),
     html.Div("|", className="footer-pipe"),
     dcc.Link("Privacy Policy", href="/privacy_policy"),
 ])

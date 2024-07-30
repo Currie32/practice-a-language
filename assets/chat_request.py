@@ -3,12 +3,13 @@ import re
 import time
 from typing import Dict, List
 
-import openai
+
 import requests
 from dash import Input, Output, callback, no_update
+from openai import OpenAI
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-openai.api_key = os.environ.get("OPENAI_KEY")
+client = OpenAI(api_key=os.environ.get("OPENAI_KEY"))
 
 
 @callback(
@@ -39,7 +40,10 @@ def convert_audio_recording_to_text(check_for_audio_file: bool) -> str:
 
             audio_file = open(audio_recording, "rb")
             os.remove(audio_recording)
-            transcript = openai.Audio.transcribe("whisper-1", audio_file)
+            transcript = client.audio.transcriptions.create(
+                model="whisper-1",
+                file=audio_file
+            )
             message_user = transcript.to_dict()["text"]
 
             return message_user, {"display": "none"}, False
@@ -62,7 +66,7 @@ def get_assistant_message(messages: List[Dict[str, str]]) -> str:
     """
 
     chat_response = _chat_completion_request(messages)
-    message_assistant = chat_response.json()["choices"][0]["message"]["content"]
+    message_assistant = chat_response.choices[0].message.content
 
     # Remove space before "!" or "?"
     message_assistant = re.sub(r"\s+([!?])", r"\1", message_assistant)
@@ -82,22 +86,14 @@ def _chat_completion_request(messages: List[Dict[str, str]]) -> Dict:
         A response from OpenAI's model to the user's statement.
     """
 
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + openai.api_key,
-    }
-    json_data = {
-        "model": "gpt-3.5-turbo-0613",
-        "messages": messages,
-        "temperature": 1.5,  # Higher values provide more varied responses
-    }
     try:
-        response = requests.post(
-            "https://api.openai.com/v1/chat/completions",
-            headers=headers,
-            json=json_data,
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            temperature=1.5,
+            max_tokens=50,
+            messages=messages
         )
-        return response
+        return completion
     except Exception as e:
         return e
 
@@ -120,7 +116,8 @@ def system_content(
         The content message for the system.
     """
 
-    content = f"Start a conversation about {conversation_setting} in {language_learn}. \
+    content = f"Act as an excellent {language_learn} teacher who is helping me to practice {language_learn}. \
+        Start a conversation about {conversation_setting} in {language_learn}. \
         Provide one statement in {language_learn}, then wait for my response. \
         Do not write in {language_known}. \
         Always finish your response with a question. \
